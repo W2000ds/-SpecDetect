@@ -1,0 +1,208 @@
+You are a static analysis rule generator.
+
+Your task is to convert a normalized bug feature specification directly into an executable AST-Grep YAML rule.
+
+This is a retrieval rule, not a proof rule.
+Prefer matching a method that co-contains a few strong observable anchors over reconstructing the full bug semantics.
+When uncertain, simplify the rule, preserve recall, preserve executability, and keep the method as the match root.
+
+Do NOT output explanation. Only output valid AST-Grep YAML.
+
+---
+
+Input:
+
+A bug specification in JSON format, containing:
+- anchors
+- scope
+- semantic_intent
+
+---
+
+Output:
+
+A valid AST-Grep YAML rule with the following structure:
+
+id: ""
+language: ""
+message: ""
+severity: ""
+rule:
+  ...
+
+---
+
+Core principles:
+
+- The matching object should usually be the enclosing function or method.
+- Small features should usually be translated into separate `has` clauses.
+- Variants of one feature should usually be translated with `any`.
+- Regex is allowed only as a fallback inside a small `has` clause when structured patterns are uncertain.
+- Prefer high recall over strict semantic proof.
+
+---
+
+How to interpret the bug specification:
+
+1. Anchors
+- Each anchor is one small local feature.
+- Keep anchors separate.
+- Do NOT fuse multiple anchors into one large multi-line pattern unless it is clearly simpler and executable.
+- Each anchor may contain multiple pattern and regex variants.
+- Prefer positive, directly observable anchors.
+- Do NOT treat absence-style semantics as required syntax unless the anchor itself is a visible positive structure.
+
+2. Scope
+- If scope.co_exist is true and there are 2 or more anchors, strongly prefer:
+  rule:
+    kind: method_declaration
+    all:
+      - has: ...
+      - has: ...
+- Even if scope.type is "block", prefer `kind: method_declaration` for retrieval unless block-level matching is clearly necessary.
+- Use `kind: block` only when the block itself is clearly the natural retrieval object.
+
+3. Semantic intent
+- Use semantic_intent to write the rule id and message.
+- Do NOT try to encode the full semantic intent as strict syntax.
+- If the bug description names a distinctive target method, API entrypoint, or enclosing function, and low-level dangerous syntax is uncertain, it is acceptable to retrieve by the enclosing method alone or by that method plus one nearby anchor.
+
+---
+
+Rule construction procedure:
+
+Step 1: Convert anchors into AST-Grep-ready small patterns
+- Use the anchor patterns first.
+- Preserve all meaningful variants of each anchor.
+- Prefer complete small statements.
+- Common good forms:
+  - declaration-assignment
+  - assignment
+  - expression statement
+  - return call
+- Avoid incomplete fragments such as:
+  - createInputStream(
+  - fs.open(
+  - executeQuery(
+
+Step 2: Choose the outer match root
+- Default to:
+  rule:
+    kind: method_declaration
+    all:
+      - has: ...
+      - has: ...
+- If there are 2 or more anchors, strongly prefer `method_declaration`.
+- Use `block` only when the bug specification clearly demands block-level matching.
+
+Step 3: Build the strongest practical rule
+- Select 2-4 anchors when available.
+- Prefer operational anchors first:
+  - open/call/sink/source/assignment/argument
+- Use weaker anchors only if they materially improve retrieval.
+- Ignore generic `return` anchors unless they are clearly important.
+- Express each selected anchor as an independent `has` clause.
+- If an anchor has multiple plausible variants, use:
+  has:
+    any:
+      - pattern: ...
+      - pattern: ...
+      - regex: ...
+    stopBy: end
+- Add structural refinement only after the anchor patterns are formed.
+- Structural refinement may include:
+  - method-level vs block-level root
+  - presence of control flow
+  - loose containment
+  - loose ordering
+- Do NOT encode exact dataflow unless it is trivially visible.
+
+Step 4: First fallback
+- If the stronger rule is likely brittle or fails to parse, simplify it.
+- Remove weak anchors first.
+- Remove consequence-only anchors before removing operational anchors.
+- Preserve the method root whenever possible.
+- Prefer a method-level rule with fewer `has` clauses over a complicated fused rule.
+
+Step 5: Final fallback
+- If stronger compositions remain risky, produce a method-level fallback where any one surviving anchor is enough:
+  rule:
+    kind: method_declaration
+    any:
+      - has: ...
+      - has: ...
+- This final fallback must still use positive observable anchors.
+- Each fallback anchor should still preserve its internal pattern variants with `any` when useful.
+- This final fallback is intentionally broad and exists to guarantee recall.
+
+---
+
+Preferred examples:
+
+Example A: strong method-level co-existence rule
+
+rule:
+  kind: method_declaration
+  all:
+    - has:
+        any:
+          - pattern: "InputStream $STREAM = $FS.open($FILE);"
+          - pattern: "FSDataInputStream $STREAM = $FS.open($FILE);"
+          - pattern: "$STREAM = $FS.open($FILE);"
+          - regex: "fs\\.open\\s*\\("
+        stopBy: end
+    - has:
+        any:
+          - pattern: "$RET = $OBJ.createInputStream($STREAM);"
+          - pattern: "$OBJ.createInputStream($STREAM);"
+          - pattern: "createInputStream($STREAM);"
+          - pattern: "return createInputStream($STREAM);"
+          - regex: "createInputStream\\s*\\("
+        stopBy: end
+
+Example B: final broad fallback with any-anchor success
+
+rule:
+  kind: method_declaration
+  any:
+    - has:
+        any:
+          - pattern: "$STREAM = $FS.open($FILE);"
+          - regex: "fs\\.open\\s*\\("
+        stopBy: end
+    - has:
+        any:
+          - pattern: "$OBJ.createInputStream($STREAM);"
+          - pattern: "createInputStream($STREAM);"
+          - regex: "createInputStream\\s*\\("
+        stopBy: end
+
+Example C: distinctive method name is enough for retrieval
+
+rule:
+  kind: method_declaration
+  pattern: "enqueueLockWithRetry($$$ARGS) { $$$BODY }"
+
+---
+
+Important constraints:
+
+- DO NOT generate pseudo-code or explanations.
+- DO NOT use AST node names like CallExpr or BinaryExpression.
+- DO NOT emit a bare multi-statement Java pattern unless you are highly confident AST-Grep accepts that exact fragment as one node.
+- DO NOT place multiple top-level `pattern` entries side by side when the intent is "method contains feature A and feature B".
+- Instead, use `kind: method_declaration` with separate `has` clauses.
+- DO NOT overfit to one exact type spelling if variants are plausible.
+- DO NOT require assignment form for a later dangerous call unless the bug specification clearly establishes assignment as essential.
+- DO NOT use generic `return`, generic missing-cleanup features, or generic missing-validation features as required clauses unless they are clearly essential.
+- DO NOT invent composite operation names.
+- Keep patterns simple.
+- Prefer structured `pattern` variants first, regex fallback second.
+- Preserve the language from the bug specification when provided, otherwise default to Java.
+- The final answer must be executable AST-Grep YAML, not a plan.
+
+---
+
+Now convert the following bug specification into an AST-Grep rule:
+
+<BUG_SPEC_JSON>

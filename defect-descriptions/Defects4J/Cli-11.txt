@@ -1,0 +1,5 @@
+PosixParser interupts "-target opt" as "-t arget opt"
+This was posted on the Commons-Developer list and confirmed as a bug.
+When an option has both a short name and a long name, PosixParser incorrectly splits the long option and its parameters.
+A command line with just `"-t foobar.com"` prints out `"processing selected target: foobar.com"` (OK)
+A command line with just `"-target foobar.com"` prints out `"processing selected target: arget"` (ERROR?)

@@ -1,0 +1,4 @@
+Apache Hadoop's FileUtil.unTar(File, File) API does not escape the input file name before being passed to the shell
+Apache Hadoop's FileUtil.unTar(File, File) API does not escape the input file name before passing it to the shell, which allows arbitrary command injection.
+In Hadoop 3.3 this behavior is only used by a local user flow, but in Hadoop 2.x it is used for YARN localization and can enable remote code execution.
+The same behavior is also used by Apache Spark through the ADD ARCHIVE SQL command.

@@ -1,0 +1,5 @@
+NullPointerException occurs if topic associated with GlobalKTable changes
+A NullPointerException occurs when the global checkpoint file still contains a topic that was previously associated with, but is no longer configured for, a GlobalKTable.
+In that case, the deserializer for the old but still valid topic is null.
+The issue can be reproduced by creating a GlobalKTable for one topic, changing it to a new topic, and then producing messages to the previous topic.
+The consumer then tries to read from the old topic, cannot find a matching deserializer, and throws the exception.

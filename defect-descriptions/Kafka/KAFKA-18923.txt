@@ -1,0 +1,3 @@
+resource leak in RSM fetchIndex inputStream
+RemoteStorageManager.fetchIndex returns an input stream that must be released explicitly.
+Some call sites forget to close that stream, which can cause a resource leak.

@@ -1,0 +1,3 @@
+SslTransportLayer may leak SSLEngine resources
+SslTransportLayer does not invoke SSLEngine::closeInbound in close() after flushing the close_notify TLS alert.
+While this is not a problem for the default JDK SSLEngine, it results in a resource leak in Netty/OpenSSL based SSLEngine, which frees native resources only when closeInbound is invoked.

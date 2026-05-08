@@ -1,0 +1,4 @@
+Incorrect handling of NUL username and group Tar.gz entries
+With version 1.8 of commons-compress, it is no longer possible to decompress an archive if an entry has a null or empty username or group.
+The same archive worked in version 1.7, so this appears to be a regression.
+This exception leads to my suspision that the regression was introduced with the fix for this ticket COMPRESS-262, which has a nearly identical exception provided.

@@ -1,0 +1,11 @@
+SQL injection vulnerability when processing delete column statistics requests via the HMS Thrift APIs
+The latest version of the Apache Hive code contains a SQL injection vulnerability when processing requests to delete column statistics. This vulnerability enables attackers to execute arbitrary SQL code via maliciously crafted requests.
+The delete_column_statistics_req function receives DeleteColumnStatisticsRequest from Thrift clients:
+
+public boolean delete_column_statistics_req(DeleteColumnStatisticsRequest req)
+
+In the deleteTableColumnStatistics function, the parameter 'engine' comes from the previous call (that is, unvalidated user input):
+
+The deleteTableColumnStatistics function begins constructing SQL statement:
+
+public boolean deleteTableColumnStatistics(long tableId, List<String> colNames, String engine)

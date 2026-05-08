@@ -1,0 +1,162 @@
+You are an expert in static code analysis and bug pattern modeling.
+
+Your task is to translate a natural language bug description into a structured bug feature specification for high-recall AST-based retrieval.
+
+The output must:
+- Focus on AST-level observable patterns
+- Prefer high recall over strict proof
+- Separate directly matchable features from semantic meaning
+- Preserve multiple realistic surface variants for the same anchor
+
+Do NOT output explanation. Only output valid JSON.
+
+Bug Description:
+"""
+<BUG_DESCRIPTION>
+"""
+
+Output schema:
+
+{
+  "anchors": [
+    {
+      "id": "",
+      "name": "",
+      "description": "",
+      "behavior": "",
+      "patterns": [
+        {
+          "pattern": "",
+          "regex": ""
+        }
+      ]
+    }
+  ],
+  "environment": [
+    {
+      "id": "",
+      "name": "",
+      "description": "",
+      "patterns": [
+        {
+          "pattern": "",
+          "regex": ""
+        }
+      ]
+    }
+  ],
+  "scope": {
+    "type": ""
+  },
+  "semantic_intent": {
+    "defect_type": "",
+    "scenario": "",
+    "must_hold": [],
+    "must_not_hold": [],
+    "judge_focus": []
+  }
+}
+
+Extraction rules:
+
+1. Anchors
+- Identify all key operations when possible.
+- Each anchor must represent ONE positive, directly observable code operation.
+- An anchor is not a complete AST node. It is an abstract representation of local code behavior.
+- The `name` field should contain a highly identifiable code element, such as a function name, class name, API call, variable, object, or parameter.
+- The `description` field should briefly explain what code element or local behavior the anchor represents.
+- Good anchors include:
+  - variable definition
+  - assignment
+  - call
+  - argument usage
+  - return, but only when return is truly important
+- Do NOT create normal anchors for absences such as:
+  - missing cleanup
+  - missing try/catch
+  - no validation
+  - not closed
+  - not escaped
+- Absence-style meanings must go into `semantic_intent`, not into normal anchors.
+
+2. Anchor variants
+- For each anchor, include all realistic syntactic variants that may express the same operation.
+- If the natural language does not determine one exact surface form, preserve multiple variants instead of choosing too early.
+- Prefer complete small statement patterns over bare fragments.
+- Common variants to include when plausible:
+  - declaration-assignment
+  - assignment
+  - receiver call
+  - bare call
+  - return call
+- For resource-opening or sink-calling operations, prefer statement-level forms before bare call-only forms.
+- Use regex only as a weak fallback when exact syntax is uncertain.
+
+3. Behavior
+- `behavior` must be one of:
+  - "definition"
+  - "assignment"
+  - "call"
+  - "argument"
+  - "return"
+- Each anchor must have exactly one behavior.
+- Choose the behavior based on the observable role of the anchor in code.
+- Behavior describes the role of one anchor only.
+- Do NOT describe order, dependency, or relationships between multiple anchors in the behavior field.
+
+4. Environment
+- Use `environment` for execution-context features that complement the anchors.
+- Environment features may include:
+  - loop presence
+  - exception throwing
+  - try/catch/finally presence
+  - if/else or guard condition presence
+  - return null
+  - other visible control-flow structures
+- Environment features are auxiliary constraints for rule generation.
+- Environment features are typically not independent matching units.
+- Include environment features only when the defect description gives visible contextual constraints.
+- Do NOT put missing logic itself into `environment` as a required positive pattern.
+
+5. Scope
+- `scope.type` may be `method`, `block`, `class`, `file`, or another explicit range when the defect description requires it.
+- Prefer `method` by default.
+- Use `block` only when the natural language clearly requires a tighter local region than the whole method.
+- Use `class` or `file` when anchors and environment features must be interpreted across class-level or file-level context.
+- `scope.description` should briefly explain the co-occurrence range for anchors and environment features.
+- Do NOT encode exact parent-child, ordering, or dataflow constraints in scope.
+
+6. Semantic intent
+- Use `semantic_intent` as a structured decision representation for later defect validation.
+- `defect_type` should name the defect category, such as:
+  - "resource_leak"
+  - "null_pointer"
+  - "sql_injection"
+  - "command_injection"
+  - "incorrect_parsing"
+  - "incorrect_encoding"
+  - "incorrect_state_handling"
+  - "wrong_api_usage"
+- `scenario` should summarize the concrete situation in which the defect occurs.
+- `must_hold` lists semantic conditions that should be satisfied by a true defect.
+- `must_not_hold` lists semantic conditions whose presence would rule out the defect.
+- `judge_focus` lists code facts that should guide the later semantic judgment.
+- Keep semantic intent concise and decision-oriented.
+- Do NOT put directly matchable AST patterns in `semantic_intent`; keep those in anchors.
+- Do NOT use the old fields `bug_type`, `description`, or `key_condition`.
+
+7. Important restrictions
+- Do NOT model exact dataflow.
+- Do NOT require variable equality.
+- Do NOT overfit to one exact type spelling.
+- Do NOT add a generic `return` anchor unless returning is clearly part of the bug trigger or retrieval cue.
+- If a method name or API name is highly distinctive and likely enough for retrieval, it may itself be an anchor.
+- If the description names a distinctive enclosing method and the lower-level dangerous syntax is uncertain, prefer an anchor for that method or local operation rather than inventing speculative sink syntax.
+
+8. Goal
+- Produce a normalized specification that can later be turned into:
+  - a stronger multi-anchor rule
+  - a weaker fallback rule
+  - a final any-anchor fallback
+
+Now produce the JSON output.

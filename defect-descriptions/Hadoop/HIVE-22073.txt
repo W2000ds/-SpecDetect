@@ -1,0 +1,5 @@
+SQL Injection in TxnHandler#enqueueLockWithRetry
+The org.apache.hadoop.hive.metastore.txn.TxnHandler#enqueueLockWithRetry method gets called for Thrift lock API call with input passed from the user.
+Within that method, SQL injection is possible, for example when a partition name contains an apostrophe.
+This vulnerability may allow privilege escalation.
+It can also prevent users from querying an ACID table when a string or varchar partition key contains an apostrophe.

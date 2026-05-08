@@ -1,0 +1,3 @@
+resource leak due to not close KeyValueIterator implemented instances
+Found there are "many" KeyValueIterator implemented instances that do not explicitly get closed, which will cause resource leak.
+This issue mostly happens in tests because we usually query a state store to get a result iterator, and then do verification, but forget to close it. This issue also appears in the example code in the developer guide docs.

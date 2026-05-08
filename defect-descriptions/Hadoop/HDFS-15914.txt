@@ -1,0 +1,2 @@
+Possible Resource Leak in TextFileRegionAliasMap
+We noticed a possible resource leak here. createInputStream might throw an IOException and if it occurs, i remains open since the exception isn't caught locally, and there is no way for any caller to close the FSDataInputStream that is returned by fs.open(file) at line 371.

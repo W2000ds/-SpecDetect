@@ -1,0 +1,3 @@
+Potential resource leak in JavaKeyStoreProvider due to unclosed stream
+IOException is not among the catch blocks.
+The InputStream should be closed upon return from load().

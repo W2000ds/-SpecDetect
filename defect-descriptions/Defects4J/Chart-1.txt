@@ -1,0 +1,2 @@
+NPE in AbstractCategoryItemRender.getLegendItems()
+The warning is in the last code line where seriesCount is assigned. The variable dataset is guaranteed to be null in this location, I suppose that the check before that should actually read "if (dataset == null)", not "if (dataset != null)".

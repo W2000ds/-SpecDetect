@@ -1,0 +1,17 @@
+defect_id,dataset,project,repository_url,description_file
+Chart-1,Defects4J,JFreeChart,https://github.com/jfree/jfreechart,bug-descriptions/Defects4J/Chart-1.txt
+Cli-11,Defects4J,Apache Commons CLI,https://github.com/apache/commons-cli,bug-descriptions/Defects4J/Cli-11.txt
+Codec-8,Defects4J,Apache Commons Codec,https://github.com/apache/commons-codec,bug-descriptions/Defects4J/Codec-8.txt
+Compress-27,Defects4J,Apache Commons Compress,https://github.com/apache/commons-compress,bug-descriptions/Defects4J/Compress-27.txt
+JacksonDatabind-100,Defects4J,Jackson Databind,https://github.com/FasterXML/jackson-databind,bug-descriptions/Defects4J/JacksonDatabind-100.txt
+HADOOP-11014,Hadoop,Apache Hadoop,https://github.com/apache/hadoop,bug-descriptions/Hadoop/HADOOP-11014.txt
+HDFS-15914,Hadoop,Apache Hadoop,https://github.com/apache/hadoop,bug-descriptions/Hadoop/HDFS-15914.txt
+HIVE-22073,Hadoop,Apache Hive,https://github.com/apache/hive,bug-descriptions/Hadoop/HIVE-22073.txt
+HIVE-29269,Hadoop,Apache Hive,https://github.com/apache/hive,bug-descriptions/Hadoop/HIVE-29269.txt
+hadoop-18136,Hadoop,Apache Hadoop,https://github.com/apache/hadoop,bug-descriptions/Hadoop/hadoop-18136.txt
+KAFKA-13122,Kafka,Apache Kafka,https://github.com/apache/kafka,bug-descriptions/Kafka/KAFKA-13122.txt
+KAFKA-13149,Kafka,Apache Kafka,https://github.com/apache/kafka,bug-descriptions/Kafka/KAFKA-13149.txt
+KAFKA-16471,Kafka,Apache Kafka,https://github.com/apache/kafka,bug-descriptions/Kafka/KAFKA-16471.txt
+KAFKA-17335,Kafka,Apache Kafka,https://github.com/apache/kafka,bug-descriptions/Kafka/KAFKA-17335.txt
+KAFKA-18923,Kafka,Apache Kafka,https://github.com/apache/kafka,bug-descriptions/Kafka/KAFKA-18923.txt
+KAFKA-8671,Kafka,Apache Kafka,https://github.com/apache/kafka,bug-descriptions/Kafka/KAFKA-8671.txt

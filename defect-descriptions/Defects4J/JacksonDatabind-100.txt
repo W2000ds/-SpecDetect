@@ -1,0 +1,4 @@
+TreeTraversingParser does not take base64 variant into account
+This issue affects at least version 2.6.4 through current versions.
+TreeTraversingParser accepts a base64 variant but ignores it.
+When the value is a TextNode, it uses the default base64 variant instead of the one that was specified.

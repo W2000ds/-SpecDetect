@@ -1,0 +1,3 @@
+Null Pointer Exception for record==null when handling a produce request
+In production, a NullPointerException can occur while handling a produce request.
+The issue happens when record is null, possibly because of a bad client in a multi-tenant environment.
